@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XXXo The Game (Scored)</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>XXXo The Game</h1>
+    <div id="game-board"></div>
+    <p id="status">Player X's turn</p>
+    <p>Score - X: <span id="scoreX">0</span> | O: <span id="scoreO">0</span></p>
+
+    <!-- Buttons -->
+    <button onclick="endGame()">End Game</button>
+    <button id="new-game-btn" onclick="resetGame()" style="display: none">
+      Start New Game
+    </button>
+
+    <!-- Big text for winner announcement -->
+    <div id="winner-text"></div>
+
+    <!-- Total Scoreboard -->
+    <h2>Total Scoreboard</h2>
+    <p>
+      Games Won - X: <span id="totalScoreX">0</span> | O:
+      <span id="totalScoreO">0</span>
+    </p>
+    <button onclick="resetTotalScore()">Reset Scoreboard</button>
+
+    <script src="script.js"></script>
+  </body>
+</html>
