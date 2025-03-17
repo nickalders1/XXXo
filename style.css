@@ -26,7 +26,11 @@ body {
 
 .cell.taken {
   cursor: not-allowed;
-  background-color: darkgray;
+  background-color: rgb(247, 247, 247);
+}
+
+.last-move {
+  background-color: rgb(124, 124, 124) !important;
 }
 
 /* New styling for big winner announcement */

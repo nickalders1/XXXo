@@ -43,21 +43,27 @@ function createBoard() {
 }
 
 function handleMove(event) {
-  if (!gameActive) return; // Stop if the game is over
+  if (!gameActive) return;
 
   const row = parseInt(event.target.dataset.row);
   const col = parseInt(event.target.dataset.col);
 
-  // Check if the move is valid
   if (board[row][col] === "" && !isNextToLastMove(row, col)) {
-    board[row][col] = currentPlayer; // Place the move on the board
-    event.target.textContent = currentPlayer; // Update UI
-    event.target.classList.add("taken");
+    // 🔥 Verwijder oude highlight
+    const previousMove = document.querySelector(".last-move");
+    if (previousMove) {
+      previousMove.classList.remove("last-move");
+    }
 
-    lastMove[currentPlayer] = { row, col }; // Save last move
+    // Zet de nieuwe zet
+    board[row][col] = currentPlayer;
+    event.target.textContent = currentPlayer;
+    event.target.classList.add("taken", "last-move"); // 🔥 Highlight de nieuwe zet
+
+    lastMove[currentPlayer] = { row, col };
 
     let points = checkForPoints(row, col, currentPlayer);
-    score[currentPlayer] += points; // Update player score
+    score[currentPlayer] += points;
     updateScoreDisplay();
 
     if (isBoardFull()) {
@@ -66,7 +72,6 @@ function handleMove(event) {
       return;
     }
 
-    // 🔥 **Ensure turn switches**
     currentPlayer = currentPlayer === "X" ? "O" : "X";
     statusText.textContent = `Player ${currentPlayer}'s turn`;
   } else if (board[row][col] !== "") {
