@@ -4,10 +4,10 @@ body {
 }
 
 body {
-  background-image: url("images/background.jpg"); /* Pas het pad aan als nodig */
-  background-size: cover; /* Zorgt dat de afbeelding het hele scherm vult */
-  background-position: center; /* Centreert de afbeelding */
-  background-repeat: no-repeat; /* Voorkomt herhaling van de afbeelding */
+  background-image: url("images/background.jpg"), url("images/header.jpg");
+  background-size: cover, contain;
+  background-position: center, top center;
+  background-repeat: no-repeat, no-repeat;
 }
 
 #game-board {
