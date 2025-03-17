@@ -19,18 +19,24 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 2em;
-  background-color: lightgray;
+  background-color: rgb(219, 219, 219);
   border: 2px solid black;
   cursor: pointer;
 }
 
 .cell.taken {
   cursor: not-allowed;
-  background-color: rgb(247, 247, 247);
+  background-color: rgb(219, 219, 219);
 }
 
-.last-move {
-  background-color: rgb(124, 124, 124) !important;
+.last-move-X {
+  background-color: darkblue !important; /* Laatste zet van X */
+  color: white;
+}
+
+.last-move-O {
+  background-color: darkred !important; /* Laatste zet van O */
+  color: white;
 }
 
 /* New styling for big winner announcement */

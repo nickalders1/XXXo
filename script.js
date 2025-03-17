@@ -49,16 +49,16 @@ function handleMove(event) {
   const col = parseInt(event.target.dataset.col);
 
   if (board[row][col] === "" && !isNextToLastMove(row, col)) {
-    // 🔥 Verwijder oude highlight
-    const previousMove = document.querySelector(".last-move");
+    // 🔥 Verwijder alleen de vorige zet van dezelfde speler
+    const previousMove = document.querySelector(`.last-move-${currentPlayer}`);
     if (previousMove) {
-      previousMove.classList.remove("last-move");
+      previousMove.classList.remove(`last-move-${currentPlayer}`);
     }
 
     // Zet de nieuwe zet
     board[row][col] = currentPlayer;
     event.target.textContent = currentPlayer;
-    event.target.classList.add("taken", "last-move"); // 🔥 Highlight de nieuwe zet
+    event.target.classList.add("taken", `last-move-${currentPlayer}`); // 🔥 Markeer nieuwe zet
 
     lastMove[currentPlayer] = { row, col };
 
