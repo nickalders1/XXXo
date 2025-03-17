@@ -4,7 +4,7 @@ body {
 }
 
 body {
-  background-image: url("images/background.png"); /* Pas het pad aan als nodig */
+  background-image: url("images/background.jpg"); /* Pas het pad aan als nodig */
   background-size: cover; /* Zorgt dat de afbeelding het hele scherm vult */
   background-position: center; /* Centreert de afbeelding */
   background-repeat: no-repeat; /* Voorkomt herhaling van de afbeelding */
