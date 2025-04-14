@@ -44,7 +44,7 @@ body {
 }
 
 .last-move-X {
-  background-color: rgb(65, 65, 65) !important; /* Laatste zet van X */
+  background-color: rgb(55, 55, 55) !important; /* Laatste zet van X */
   color: white;
 }
 
