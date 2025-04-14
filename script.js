@@ -159,7 +159,7 @@ function isBoardFull() {
   }
 
   // 🔥 Stop when there is exactly ONE move left
-  return emptyCells <= 1;
+  return emptyCells === 1;
 }
 
 function updateScoreDisplay() {
