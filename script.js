@@ -148,7 +148,7 @@ function checkForExistingFour(row, col, r, c, player) {
 }
 
 function isBoardFull() {
-  let emptyCells = 1;
+  let emptyCells = 0;
 
   for (let row = 0; row < boardSize; row++) {
     for (let col = 0; col < boardSize; col++) {
