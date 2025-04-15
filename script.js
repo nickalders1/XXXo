@@ -148,7 +148,7 @@ function checkForExistingFour(row, col, r, c, player) {
 }
 
 function isBoardFull() {
-  let emptyCells = 0;
+  let emptyCells = 1;
 
   for (let row = 0; row < boardSize; row++) {
     for (let col = 0; col < boardSize; col++) {
@@ -159,7 +159,7 @@ function isBoardFull() {
   }
 
   // 🔥 Stop when there is exactly ONE move left
-  return emptyCells === 1;
+  return emptyCells <= 1;
 }
 
 function updateScoreDisplay() {
