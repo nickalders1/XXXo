@@ -42,11 +42,6 @@ function createBoard() {
   }
 }
 
-function isGameOver() {
-  // Controleer of beide spelers geen zet meer kunnen doen
-  return !canPlayerMakeMove("X") && !canPlayerMakeMove("O");
-}
-
 
 
 function handleMove(event) {
@@ -56,7 +51,7 @@ function handleMove(event) {
   const col = parseInt(event.target.dataset.col);
 
   if (board[row][col] === "" && !isNextToLastMove(row, col)) {
-    // Verwijder alleen de vorige zet van dezelfde speler
+    // Verwijder de vorige zet van dezelfde speler
     const previousMove = document.querySelector(`.last-move-${currentPlayer}`);
     if (previousMove) {
       previousMove.classList.remove(`last-move-${currentPlayer}`);
@@ -73,12 +68,14 @@ function handleMove(event) {
     score[currentPlayer] += points;
     updateScoreDisplay();
 
+    // Stop het spel pas wanneer beide spelers geen zet meer kunnen doen
     if (isGameOver()) {
       gameActive = false;
       declareWinner();
       return;
     }
 
+    // Wissel van speler
     currentPlayer = currentPlayer === "X" ? "O" : "X";
     statusText.textContent = `Player ${currentPlayer}'s turn`;
   } else if (board[row][col] !== "") {
@@ -87,6 +84,7 @@ function handleMove(event) {
     showWarning("You may not make a move next to your last move.");
   }
 }
+
 
 function canPlayerMakeMove(player) {
   for (let row = 0; row < boardSize; row++) {
@@ -100,6 +98,9 @@ function canPlayerMakeMove(player) {
 }
 
 
+function isGameOver() {
+  return !canPlayerMakeMove("X") && !canPlayerMakeMove("O");
+}
 
 function isNextToLastMove(row, col) {
   const last = lastMove[currentPlayer];
