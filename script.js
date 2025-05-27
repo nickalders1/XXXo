@@ -72,9 +72,13 @@ function handleMove(event) {
       gameActive = false;
       declareWinner();
     } else {
-      // Wissel van speler als de huidige speler geen zet meer kan doen
-      currentPlayer = currentPlayer === "X" ? "O" : "X";
-      statusText.textContent = `Player ${currentPlayer}'s turn`;
+      // Wissel van speler, maar eerst controleren of de huidige speler geen zetten meer kan doen
+      if (!canPlayerMakeMove(currentPlayer)) {
+        currentPlayer = currentPlayer === "X" ? "O" : "X"; // De andere speler mag nu spelen
+        statusText.textContent = `Player ${currentPlayer}'s turn`;
+      } else {
+        statusText.textContent = `Player ${currentPlayer}'s turn`;
+      }
     }
   } else if (board[row][col] !== null) {
     showWarning("This spot is already taken!");
@@ -171,6 +175,7 @@ function checkForGameOver() {
   if (isBoardFull()) {
     return true;
   }
+
   // Stop het spel als de huidige speler geen zetten meer kan doen en de andere speler ook niet
   if (!canPlayerMakeMove("X") && !canPlayerMakeMove("O")) {
     return true; // Stop het spel als beide geen zetten meer kunnen doen
