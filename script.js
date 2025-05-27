@@ -1,5 +1,5 @@
 const boardSize = 5;
-let board, currentPlayer, gameActive, score, lastMove, totalScore;
+let board, currentPlayer, gameActive, score, totalScore;
 const boardElement = document.getElementById("game-board");
 const statusText = document.getElementById("status");
 const scoreXElement = document.getElementById("scoreX");
@@ -9,18 +9,15 @@ const newGameBtn = document.getElementById("new-game-btn");
 const totalScoreXElement = document.getElementById("totalScoreX");
 const totalScoreOElement = document.getElementById("totalScoreO");
 
-// Initialize total score (game wins)
 totalScore = { X: 0, O: 0 };
 updateTotalScoreDisplay();
 
+// Initialisatie van het bord en instellingen
 function initializeGame() {
-  board = Array(boardSize)
-    .fill(null)
-    .map(() => Array(boardSize).fill(""));
+  board = Array(boardSize).fill(null).map(() => Array(boardSize).fill(null));
   currentPlayer = "X";
   gameActive = true;
   score = { X: 0, O: 0 };
-  lastMove = { X: null, O: null };
   updateScoreDisplay();
   statusText.textContent = "Player X's turn";
   winnerText.style.display = "none";
@@ -28,6 +25,7 @@ function initializeGame() {
   createBoard();
 }
 
+// Maak het bord aan met de juiste aantal cellen
 function createBoard() {
   boardElement.innerHTML = "";
   for (let row = 0; row < boardSize; row++) {
@@ -42,86 +40,42 @@ function createBoard() {
   }
 }
 
-
-
+// Logica om een zet te doen
 function handleMove(event) {
   if (!gameActive) return;
 
   const row = parseInt(event.target.dataset.row);
   const col = parseInt(event.target.dataset.col);
 
-  if (board[row][col] === "" && !isNextToLastMove(row, col)) {
-    // Verwijder de vorige zet van dezelfde speler
-    const previousMove = document.querySelector(`.last-move-${currentPlayer}`);
-    if (previousMove) {
-      previousMove.classList.remove(`last-move-${currentPlayer}`);
-    }
-
-    // Zet de nieuwe zet
+  if (board[row][col] === null) {
     board[row][col] = currentPlayer;
     event.target.textContent = currentPlayer;
-    event.target.classList.add("taken", `last-move-${currentPlayer}`); // Markeer nieuwe zet
-
-    lastMove[currentPlayer] = { row, col };
 
     let points = checkForPoints(row, col, currentPlayer);
     score[currentPlayer] += points;
     updateScoreDisplay();
 
-    // Stop het spel pas wanneer beide spelers geen zet meer kunnen doen
-    if (isGameOver()) {
+    if (checkForGameOver()) {
       gameActive = false;
       declareWinner();
-      return;
+    } else {
+      currentPlayer = currentPlayer === "X" ? "O" : "X";
+      statusText.textContent = `Player ${currentPlayer}'s turn`;
     }
-
-    // Wissel van speler
-    currentPlayer = currentPlayer === "X" ? "O" : "X";
-    statusText.textContent = `Player ${currentPlayer}'s turn`;
-  } else if (board[row][col] !== "") {
+  } else {
     showWarning("This spot is already taken!");
-  } else if (isNextToLastMove(row, col)) {
-    showWarning("You may not make a move next to your last move.");
   }
 }
 
-
-function canPlayerMakeMove(player) {
-  for (let row = 0; row < boardSize; row++) {
-    for (let col = 0; col < boardSize; col++) {
-      if (board[row][col] === "" && !isNextToLastMove(row, col)) {
-        return true; // Er is nog een zet beschikbaar voor deze speler
-      }
-    }
-  }
-  return false; // Geen zetten mogelijk voor deze speler
-}
-
-
-function isGameOver() {
-  return !canPlayerMakeMove("X") && !canPlayerMakeMove("O");
-}
-
-function isNextToLastMove(row, col) {
-  const last = lastMove[currentPlayer];
-  if (!last) return false;
-  return Math.abs(row - last.row) <= 1 && Math.abs(col - last.col) <= 1;
-}
-
-function showWarning(message) {
-  statusText.textContent = message;
-  setTimeout(() => {
-    statusText.textContent = `Player ${currentPlayer}'s turn`;
-  }, 4000);
-}
-
+// Controleer of een speler punten heeft behaald
 function checkForPoints(row, col, player) {
   const directions = [
-    { r: 0, c: 1 },
-    { r: 1, c: 0 },
-    { r: 1, c: 1 },
-    { r: 1, c: -1 },
+    { r: 0, c: 1 }, // Horizontaal
+    { r: 1, c: 0 }, // Verticaal
+    { r: 1, c: 1 }, // Diagonaal
+    { r: 1, c: -1 } // Diagonaal
   ];
+
   let totalPoints = 0;
 
   for (let { r, c } of directions) {
@@ -129,13 +83,8 @@ function checkForPoints(row, col, player) {
     count += countDirection(row, col, r, c, player);
     count += countDirection(row, col, -r, -c, player);
 
-    // 🔥 New Scoring Rule: Check for 4-in-a-row first
-    if (count === 4) {
-      totalPoints += 1; // Give 1 point for 4 in a row
-    } else if (count === 5) {
-      // Check if a 4-in-a-row existed before this move
-      let wasFourInARow = checkForExistingFour(row, col, r, c, player);
-      totalPoints += wasFourInARow ? 1 : 2;
+    if (count >= 4) {
+      totalPoints += 1; // 1 punt voor 4 op een rij
     }
   }
 
@@ -148,10 +97,8 @@ function countDirection(row, col, r, c, player) {
     let newRow = row + r * i;
     let newCol = col + c * i;
     if (
-      newRow >= 0 &&
-      newRow < boardSize &&
-      newCol >= 0 &&
-      newCol < boardSize &&
+      newRow >= 0 && newRow < boardSize &&
+      newCol >= 0 && newCol < boardSize &&
       board[newRow][newCol] === player
     ) {
       count++;
@@ -160,35 +107,32 @@ function countDirection(row, col, r, c, player) {
   return count;
 }
 
-function checkForExistingFour(row, col, r, c, player) {
-  let countBeforeMove = 1;
-  countBeforeMove += countDirection(row - r, col - c, -r, -c, player);
-  countBeforeMove += countDirection(row + r, col + c, r, c, player);
-
-  return countBeforeMove === 4; // If there was already a 4-in-a-row, return true
+// Controleer of het spel afgelopen is
+function checkForGameOver() {
+  if (isBoardFull() || (!canPlayerMakeMove("X") && !canPlayerMakeMove("O"))) {
+    return true;
+  }
+  return false;
 }
 
+// Controleer of het bord vol is
 function isBoardFull() {
-  let emptyCells = 0;
+  return board.every(row => row.every(cell => cell !== null));
+}
 
+// Controleer of een speler nog een zet kan maken
+function canPlayerMakeMove(player) {
   for (let row = 0; row < boardSize; row++) {
     for (let col = 0; col < boardSize; col++) {
-      if (board[row][col] === "" && !isNextToLastMove(row, col)) {
-        emptyCells++;
+      if (board[row][col] === null) {
+        return true;
       }
     }
   }
-
-  // De game eindigt alleen als er geen lege vakjes meer zijn en de laatste zet voor X of O geen andere zetten meer mogelijk maakt
-  return emptyCells === 0;
+  return false;
 }
 
-
-function updateScoreDisplay() {
-  scoreXElement.textContent = score.X;
-  scoreOElement.textContent = score.O;
-}
-
+// Winnaar bepalen en tonen
 function declareWinner() {
   if (score.X > score.O) {
     winnerText.textContent = "PLAYER X WINS! 🎉";
@@ -202,26 +146,38 @@ function declareWinner() {
   winnerText.style.display = "block";
   newGameBtn.style.display = "block";
   updateTotalScoreDisplay();
-  gameActive = false;
 }
 
-function endGame() {
-  gameActive = false;
-  declareWinner();
+// Waarschuwing tonen
+function showWarning(message) {
+  statusText.textContent = message;
+  setTimeout(() => {
+    statusText.textContent = `Player ${currentPlayer}'s turn`;
+  }, 4000);
 }
 
-function resetGame() {
-  initializeGame();
+// Score bijwerken
+function updateScoreDisplay() {
+  scoreXElement.textContent = score.X;
+  scoreOElement.textContent = score.O;
 }
 
-function resetTotalScore() {
-  totalScore = { X: 0, O: 0 };
-  updateTotalScoreDisplay();
-}
-
+// Scoreboard bijwerken
 function updateTotalScoreDisplay() {
   totalScoreXElement.textContent = totalScore.X;
   totalScoreOElement.textContent = totalScore.O;
 }
 
+// Nieuwe game starten
+function resetGame() {
+  initializeGame();
+}
+
+// Scoreboard resetten
+function resetTotalScore() {
+  totalScore = { X: 0, O: 0 };
+  updateTotalScoreDisplay();
+}
+
+// Game initialiseren
 initializeGame();
