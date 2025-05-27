@@ -42,6 +42,18 @@ function createBoard() {
   }
 }
 
+function canPlayerMakeMove(player) {
+  for (let row = 0; row < boardSize; row++) {
+    for (let col = 0; col < boardSize; col++) {
+      if (board[row][col] === "" && !isNextToLastMove(row, col)) {
+        return true; // Er is nog een zet beschikbaar voor deze speler
+      }
+    }
+  }
+  return false; // Geen zetten mogelijk voor deze speler
+}
+
+
 function handleMove(event) {
   if (!gameActive) return;
 
@@ -66,7 +78,7 @@ function handleMove(event) {
     score[currentPlayer] += points;
     updateScoreDisplay();
 
-    if (isBoardFull()) {
+    if (!canPlayerMakeMove(currentPlayer === "X" ? "O" : "X") && !canPlayerMakeMove(currentPlayer)) {
       gameActive = false;
       declareWinner();
       return;
@@ -80,6 +92,7 @@ function handleMove(event) {
     showWarning("You may not make a move next to your last move.");
   }
 }
+
 
 function isNextToLastMove(row, col) {
   const last = lastMove[currentPlayer];
