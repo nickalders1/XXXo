@@ -1,5 +1,5 @@
 const boardSize = 5;
-let board, currentPlayer, gameActive, score, totalScore;
+let board, currentPlayer, gameActive, score, lastMove, totalScore;
 const boardElement = document.getElementById("game-board");
 const statusText = document.getElementById("status");
 const scoreXElement = document.getElementById("scoreX");
@@ -9,15 +9,17 @@ const newGameBtn = document.getElementById("new-game-btn");
 const totalScoreXElement = document.getElementById("totalScoreX");
 const totalScoreOElement = document.getElementById("totalScoreO");
 
+// Initialiseer de score
 totalScore = { X: 0, O: 0 };
 updateTotalScoreDisplay();
 
-// Initialisatie van het bord en instellingen
+// Initialiseer het bord en instellingen
 function initializeGame() {
   board = Array(boardSize).fill(null).map(() => Array(boardSize).fill(null));
   currentPlayer = "X";
   gameActive = true;
   score = { X: 0, O: 0 };
+  lastMove = { X: null, O: null };
   updateScoreDisplay();
   statusText.textContent = "Player X's turn";
   winnerText.style.display = "none";
@@ -47,14 +49,25 @@ function handleMove(event) {
   const row = parseInt(event.target.dataset.row);
   const col = parseInt(event.target.dataset.col);
 
-  if (board[row][col] === null) {
+  if (board[row][col] === null && !isNextToLastMove(row, col)) {
+    // Verwijder de vorige zet van dezelfde speler
+    const previousMove = document.querySelector(`.last-move-${currentPlayer}`);
+    if (previousMove) {
+      previousMove.classList.remove(`last-move-${currentPlayer}`);
+    }
+
+    // Zet de nieuwe zet
     board[row][col] = currentPlayer;
     event.target.textContent = currentPlayer;
+    event.target.classList.add("taken", `last-move-${currentPlayer}`); // Markeer nieuwe zet
+
+    lastMove[currentPlayer] = { row, col };
 
     let points = checkForPoints(row, col, currentPlayer);
     score[currentPlayer] += points;
     updateScoreDisplay();
 
+    // Controleer of het spel afgelopen is
     if (checkForGameOver()) {
       gameActive = false;
       declareWinner();
@@ -62,12 +75,29 @@ function handleMove(event) {
       currentPlayer = currentPlayer === "X" ? "O" : "X";
       statusText.textContent = `Player ${currentPlayer}'s turn`;
     }
-  } else {
+  } else if (board[row][col] !== null) {
     showWarning("This spot is already taken!");
+  } else if (isNextToLastMove(row, col)) {
+    showWarning("You may not make a move next to your last move.");
   }
 }
 
-// Controleer of een speler punten heeft behaald
+// Controleer of de laatste zet naast de vorige zet ligt
+function isNextToLastMove(row, col) {
+  const last = lastMove[currentPlayer];
+  if (!last) return false;
+  return Math.abs(row - last.row) <= 1 && Math.abs(col - last.col) <= 1;
+}
+
+// Toon waarschuwingen
+function showWarning(message) {
+  statusText.textContent = message;
+  setTimeout(() => {
+    statusText.textContent = `Player ${currentPlayer}'s turn`;
+  }, 4000);
+}
+
+// Controleer of er punten zijn behaald (4 of 5 op een rij)
 function checkForPoints(row, col, player) {
   const directions = [
     { r: 0, c: 1 }, // Horizontaal
@@ -83,14 +113,19 @@ function checkForPoints(row, col, player) {
     count += countDirection(row, col, r, c, player);
     count += countDirection(row, col, -r, -c, player);
 
-    if (count >= 4) {
+    if (count === 4) {
       totalPoints += 1; // 1 punt voor 4 op een rij
+    } else if (count === 5) {
+      // Check of er een 4 op rij bestond voor deze zet
+      let wasFourInARow = checkForExistingFour(row, col, r, c, player);
+      totalPoints += wasFourInARow ? 1 : 2;
     }
   }
 
   return totalPoints;
 }
 
+// Tel het aantal in een bepaalde richting
 function countDirection(row, col, r, c, player) {
   let count = 0;
   for (let i = 1; i < 5; i++) {
@@ -107,17 +142,23 @@ function countDirection(row, col, r, c, player) {
   return count;
 }
 
-// Controleer of het spel afgelopen is
-function checkForGameOver() {
-  if (isBoardFull() || (!canPlayerMakeMove("X") && !canPlayerMakeMove("O"))) {
-    return true;
-  }
-  return false;
+// Check of er al een 4 op rij bestond voordat deze zet werd gedaan
+function checkForExistingFour(row, col, r, c, player) {
+  let countBeforeMove = 1;
+  countBeforeMove += countDirection(row - r, col - c, -r, -c, player);
+  countBeforeMove += countDirection(row + r, col + c, r, c, player);
+
+  return countBeforeMove === 4; // Als er al een 4 op rij bestond, return true
 }
 
 // Controleer of het bord vol is
 function isBoardFull() {
   return board.every(row => row.every(cell => cell !== null));
+}
+
+// Controleer of het spel afgelopen is (bord vol of geen zetten meer)
+function checkForGameOver() {
+  return isBoardFull() || (!canPlayerMakeMove("X") && !canPlayerMakeMove("O"));
 }
 
 // Controleer of een speler nog een zet kan maken
@@ -146,14 +187,6 @@ function declareWinner() {
   winnerText.style.display = "block";
   newGameBtn.style.display = "block";
   updateTotalScoreDisplay();
-}
-
-// Waarschuwing tonen
-function showWarning(message) {
-  statusText.textContent = message;
-  setTimeout(() => {
-    statusText.textContent = `Player ${currentPlayer}'s turn`;
-  }, 4000);
 }
 
 // Score bijwerken
