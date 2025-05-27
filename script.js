@@ -42,17 +42,6 @@ function createBoard() {
   }
 }
 
-function canPlayerMakeMove(player) {
-  for (let row = 0; row < boardSize; row++) {
-    for (let col = 0; col < boardSize; col++) {
-      if (board[row][col] === "" && !isNextToLastMove(row, col)) {
-        return true; // Er is nog een zet beschikbaar voor deze speler
-      }
-    }
-  }
-  return false; // Geen zetten mogelijk voor deze speler
-}
-
 function isGameOver() {
   // Controleer of beide spelers geen zet meer kunnen doen
   return !canPlayerMakeMove("X") && !canPlayerMakeMove("O");
@@ -97,6 +86,17 @@ function handleMove(event) {
   } else if (isNextToLastMove(row, col)) {
     showWarning("You may not make a move next to your last move.");
   }
+}
+
+function canPlayerMakeMove(player) {
+  for (let row = 0; row < boardSize; row++) {
+    for (let col = 0; col < boardSize; col++) {
+      if (board[row][col] === "" && !isNextToLastMove(row, col)) {
+        return true; // Er is nog een zet beschikbaar voor deze speler
+      }
+    }
+  }
+  return false; // Geen zetten mogelijk voor deze speler
 }
 
 
