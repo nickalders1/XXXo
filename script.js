@@ -158,9 +158,10 @@ function isBoardFull() {
     }
   }
 
-  // 🔥 Stop when there is exactly ONE move left
-  return emptyCells <= 1;
+  // De game eindigt alleen als er geen lege vakjes meer zijn en de laatste zet voor X of O geen andere zetten meer mogelijk maakt
+  return emptyCells === 0;
 }
+
 
 function updateScoreDisplay() {
   scoreXElement.textContent = score.X;
