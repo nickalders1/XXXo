@@ -53,6 +53,12 @@ function canPlayerMakeMove(player) {
   return false; // Geen zetten mogelijk voor deze speler
 }
 
+function isGameOver() {
+  // Controleer of beide spelers geen zet meer kunnen doen
+  return !canPlayerMakeMove("X") && !canPlayerMakeMove("O");
+}
+
+
 
 function handleMove(event) {
   if (!gameActive) return;
@@ -61,7 +67,7 @@ function handleMove(event) {
   const col = parseInt(event.target.dataset.col);
 
   if (board[row][col] === "" && !isNextToLastMove(row, col)) {
-    // 🔥 Verwijder alleen de vorige zet van dezelfde speler
+    // Verwijder alleen de vorige zet van dezelfde speler
     const previousMove = document.querySelector(`.last-move-${currentPlayer}`);
     if (previousMove) {
       previousMove.classList.remove(`last-move-${currentPlayer}`);
@@ -70,7 +76,7 @@ function handleMove(event) {
     // Zet de nieuwe zet
     board[row][col] = currentPlayer;
     event.target.textContent = currentPlayer;
-    event.target.classList.add("taken", `last-move-${currentPlayer}`); // 🔥 Markeer nieuwe zet
+    event.target.classList.add("taken", `last-move-${currentPlayer}`); // Markeer nieuwe zet
 
     lastMove[currentPlayer] = { row, col };
 
@@ -78,7 +84,7 @@ function handleMove(event) {
     score[currentPlayer] += points;
     updateScoreDisplay();
 
-    if (!canPlayerMakeMove(currentPlayer === "X" ? "O" : "X") && !canPlayerMakeMove(currentPlayer)) {
+    if (isGameOver()) {
       gameActive = false;
       declareWinner();
       return;
@@ -92,6 +98,7 @@ function handleMove(event) {
     showWarning("You may not make a move next to your last move.");
   }
 }
+
 
 
 function isNextToLastMove(row, col) {
