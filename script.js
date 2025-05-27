@@ -72,6 +72,7 @@ function handleMove(event) {
       gameActive = false;
       declareWinner();
     } else {
+      // Wissel van speler als de huidige speler geen zet meer kan doen
       currentPlayer = currentPlayer === "X" ? "O" : "X";
       statusText.textContent = `Player ${currentPlayer}'s turn`;
     }
@@ -151,15 +152,30 @@ function checkForExistingFour(row, col, r, c, player) {
   return countBeforeMove === 4; // Als er al een 4 op rij bestond, return true
 }
 
-// Controleer of het bord vol is
+// Controleer of het bord vol is (24 vakjes gevuld)
 function isBoardFull() {
-  return board.every(row => row.every(cell => cell !== null));
+  let filledCells = 0;
+  for (let row = 0; row < boardSize; row++) {
+    for (let col = 0; col < boardSize; col++) {
+      if (board[row][col] !== null) {
+        filledCells++;
+      }
+    }
+  }
+  return filledCells === 24; // Als er 24 vakjes gevuld zijn
 }
 
 // Controleer of het spel afgelopen is (bord vol of geen zetten meer)
 function checkForGameOver() {
-  // Het spel stopt pas als beide spelers geen zetten meer kunnen doen
-  return !canPlayerMakeMove("X") && !canPlayerMakeMove("O");
+  // Het spel stopt als er 24 vakjes vol zijn of als de speler X geen zet meer kan doen
+  if (isBoardFull()) {
+    return true;
+  }
+  // Stop het spel als de huidige speler geen zetten meer kan doen en de andere speler ook niet
+  if (!canPlayerMakeMove("X") && !canPlayerMakeMove("O")) {
+    return true; // Stop het spel als beide geen zetten meer kunnen doen
+  }
+  return false;
 }
 
 // Controleer of een speler nog een zet kan maken
