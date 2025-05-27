@@ -82,7 +82,6 @@ function handleMove(event) {
   }
 }
 
-
 // Controleer of de laatste zet naast de vorige zet ligt
 function isNextToLastMove(row, col) {
   const last = lastMove[currentPlayer];
@@ -159,16 +158,9 @@ function isBoardFull() {
 
 // Controleer of het spel afgelopen is (bord vol of geen zetten meer)
 function checkForGameOver() {
-  // Controleer of de huidige speler geen zetten meer kan doen
-  if (!canPlayerMakeMove(currentPlayer)) {
-    // Als de andere speler geen zetten kan doen, stop dan het spel
-    if (!canPlayerMakeMove(currentPlayer === "X" ? "O" : "X")) {
-      return true; // Stop het spel
-    }
-  }
-  return false; // Het spel gaat door als een van de spelers nog een zet kan doen
+  // Het spel stopt pas als beide spelers geen zetten meer kunnen doen
+  return !canPlayerMakeMove("X") && !canPlayerMakeMove("O");
 }
-
 
 // Controleer of een speler nog een zet kan maken
 function canPlayerMakeMove(player) {
@@ -181,7 +173,6 @@ function canPlayerMakeMove(player) {
   }
   return false; // Geen zetten mogelijk voor deze speler
 }
-
 
 // Winnaar bepalen en tonen
 function declareWinner() {
