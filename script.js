@@ -72,9 +72,9 @@ function handleMove(event) {
       gameActive = false;
       declareWinner();
     } else {
-      // Wissel van speler, maar eerst controleren of de huidige speler geen zetten meer kan doen
+      // Als de huidige speler geen zet meer kan doen, wissel van beurt
       if (!canPlayerMakeMove(currentPlayer)) {
-        currentPlayer = currentPlayer === "X" ? "O" : "X"; // De andere speler mag nu spelen
+        currentPlayer = currentPlayer === "X" ? "O" : "X"; // Wissel van speler
         statusText.textContent = `Player ${currentPlayer}'s turn`;
       } else {
         statusText.textContent = `Player ${currentPlayer}'s turn`;
@@ -180,6 +180,7 @@ function checkForGameOver() {
   if (!canPlayerMakeMove("X") && !canPlayerMakeMove("O")) {
     return true; // Stop het spel als beide geen zetten meer kunnen doen
   }
+
   return false;
 }
 
