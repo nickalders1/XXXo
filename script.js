@@ -9,7 +9,6 @@ const newGameBtn = document.getElementById("new-game-btn");
 const totalScoreXElement = document.getElementById("totalScoreX");
 const totalScoreOElement = document.getElementById("totalScoreO");
 
-// Initialize total score (game wins)
 totalScore = { X: 0, O: 0 };
 updateTotalScoreDisplay();
 
@@ -63,25 +62,43 @@ function handleMove(event) {
     score[currentPlayer] += points;
     updateScoreDisplay();
 
-    // Check of beide spelers geen zetten meer kunnen doen
     const xCanMove = hasValidMove("X");
     const oCanMove = hasValidMove("O");
 
-    if (!xCanMove && !oCanM
-
-
-
-currentPlayer = nextPlayer;
-statusText.textContent = `Player ${currentPlayer}'s turn`;
-
+    if (!xCanMove && !oCanMove) {
+      gameActive = false;
+      declareWinner();
+      return;
+    }
 
     currentPlayer = currentPlayer === "X" ? "O" : "X";
+
+    if (!hasValidMove(currentPlayer)) {
+      statusText.textContent = `Player ${currentPlayer} has no valid moves. Turn skipped.`;
+      currentPlayer = currentPlayer === "X" ? "O" : "X";
+    }
+
     statusText.textContent = `Player ${currentPlayer}'s turn`;
   } else if (board[row][col] !== "") {
     showWarning("This spot is already taken!");
   } else if (isNextToLastMove(row, col)) {
     showWarning("You may not make a move next to your last move.");
   }
+}
+
+function hasValidMove(player) {
+  const last = lastMove[player];
+  for (let row = 0; row < boardSize; row++) {
+    for (let col = 0; col < boardSize; col++) {
+      if (
+        board[row][col] === "" &&
+        (!last || Math.abs(row - last.row) > 1 || Math.abs(col - last.col) > 1)
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 function isNextToLastMove(row, col) {
@@ -111,11 +128,9 @@ function checkForPoints(row, col, player) {
     count += countDirection(row, col, r, c, player);
     count += countDirection(row, col, -r, -c, player);
 
-    // 🔥 New Scoring Rule: Check for 4-in-a-row first
     if (count === 4) {
-      totalPoints += 1; // Give 1 point for 4 in a row
+      totalPoints += 1;
     } else if (count === 5) {
-      // Check if a 4-in-a-row existed before this move
       let wasFourInARow = checkForExistingFour(row, col, r, c, player);
       totalPoints += wasFourInARow ? 1 : 2;
     }
@@ -146,39 +161,7 @@ function checkForExistingFour(row, col, r, c, player) {
   let countBeforeMove = 1;
   countBeforeMove += countDirection(row - r, col - c, -r, -c, player);
   countBeforeMove += countDirection(row + r, col + c, r, c, player);
-
-  return countBeforeMove === 4; // If there was already a 4-in-a-row, return true
-}
-
-function hasValidMove(player) {
-  const last = lastMove[player];
-  for (let row = 0; row < boardSize; row++) {
-    for (let col = 0; col < boardSize; col++) {
-      if (
-        board[row][col] === "" &&
-        (!last || Math.abs(row - last.row) > 1 || Math.abs(col - last.col) > 1)
-      ) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-
-function isBoardFull() {
-  let emptyCells = 0;
-
-  for (let row = 0; row < boardSize; row++) {
-    for (let col = 0; col < boardSize; col++) {
-      if (board[row][col] === "" && !isNextToLastMove(row, col)) {
-        emptyCells++;
-      }
-    }
-  }
-
-  // 🔥 Stop when there is exactly ONE move left
-  return emptyCells <= 1;
+  return countBeforeMove === 4;
 }
 
 function updateScoreDisplay() {
@@ -202,18 +185,8 @@ function declareWinner() {
   gameActive = false;
 }
 
-function endGame() {
-  gameActive = false;
-  declareWinner();
-}
-
 function resetGame() {
   initializeGame();
-}
-
-function resetTotalScore() {
-  totalScore = { X: 0, O: 0 };
-  updateTotalScoreDisplay();
 }
 
 function updateTotalScoreDisplay() {
