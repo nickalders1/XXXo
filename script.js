@@ -198,6 +198,18 @@ function declareWinner() {
   gameActive = false;
 }
 
+function endGame() {
+  if (!gameActive) return;
+  gameActive = false;
+  declareWinner();
+}
+
+function resetTotalScore() {
+  totalScore = { X: 0, O: 0 };
+  updateTotalScoreDisplay();
+}
+
+
 function resetGame() {
   initializeGame();
 }
