@@ -81,10 +81,20 @@ function handleMove(event) {
     }
 
 if (bonusTurn && currentPlayer === "O") {
-  bonusTurn = false; // reset bonus na de beurt
+  bonusTurn = false;
+  currentPlayer = "X";
+
+  if (!hasValidMove("X")) {
+    gameActive = false;
+    declareWinner();
+  } else {
+    statusText.textContent = `Player ${currentPlayer}'s turn`;
+  }
+  return;
 } else if (bonusTurn && currentPlayer === "X") {
-  return; // X mag niet meer, wacht op O
+  return; // Wacht op O
 }
+
 
 
     if (currentPlayer === "X" && !xCanMove && oCanMove) {
