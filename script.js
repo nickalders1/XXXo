@@ -65,12 +65,15 @@ function handleMove(event) {
     score[currentPlayer] += points;
     updateScoreDisplay();
 
-    if (totalAvailableMoves() <= 1) {
+    // Als dit de bonusbeurt van O was, dan spel stoppen na deze zet
+    if (bonusTurn && currentPlayer === "O") {
+      bonusTurn = false;
       gameActive = false;
       declareWinner();
       return;
     }
 
+    // Check of beide spelers niks meer kunnen
     const xCanMove = hasValidMove("X");
     const oCanMove = hasValidMove("O");
 
@@ -80,20 +83,31 @@ function handleMove(event) {
       return;
     }
 
-if (bonusTurn && currentPlayer === "O") {
-  bonusTurn = false;
-  currentPlayer = "X";
+    // Als X zichzelf vastzet en O nog kan → geef O bonusbeurt
+    if (currentPlayer === "X" && !xCanMove && oCanMove) {
+      bonusTurn = true;
+      currentPlayer = "O";
+      statusText.textContent = `Player O's bonus turn`;
+      return;
+    }
 
-  if (!hasValidMove("X")) {
-    gameActive = false;
-    declareWinner();
-  } else {
+    // Als O niks meer kan en het is zijn beurt → spel stoppen
+    if (currentPlayer === "X" && !oCanMove) {
+      gameActive = false;
+      declareWinner();
+      return;
+    }
+
+    // Normale beurtwissel
+    currentPlayer = currentPlayer === "X" ? "O" : "X";
     statusText.textContent = `Player ${currentPlayer}'s turn`;
+  } else if (board[row][col] !== "") {
+    showWarning("This spot is already taken!");
+  } else if (isNextToLastMove(row, col)) {
+    showWarning("You may not make a move next to your last move.");
   }
-  return;
-} else if (bonusTurn && currentPlayer === "X") {
-  return; // Wacht op O
 }
+
 
 
 
