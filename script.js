@@ -1,5 +1,7 @@
 const boardSize = 5;
 let board, currentPlayer, gameActive, score, lastMove, totalScore;
+let bonusTurn = false;
+
 const boardElement = document.getElementById("game-board");
 const statusText = document.getElementById("status");
 const scoreXElement = document.getElementById("scoreX");
@@ -20,6 +22,7 @@ function initializeGame() {
   gameActive = true;
   score = { X: 0, O: 0 };
   lastMove = { X: null, O: null };
+  bonusTurn = false;
   updateScoreDisplay();
   statusText.textContent = "Player X's turn";
   winnerText.style.display = "none";
@@ -71,13 +74,23 @@ function handleMove(event) {
       return;
     }
 
-    currentPlayer = currentPlayer === "X" ? "O" : "X";
-
-    if (!hasValidMove(currentPlayer)) {
-      statusText.textContent = `Player ${currentPlayer} has no valid moves. Turn skipped.`;
-      currentPlayer = currentPlayer === "X" ? "O" : "X";
+    if (bonusTurn) {
+      gameActive = false;
+      declareWinner();
+      return;
     }
 
+    if (currentPlayer === "X" && !xCanMove && oCanMove) {
+      bonusTurn = true;
+    }
+
+    if (currentPlayer === "X" && !oCanMove) {
+      gameActive = false;
+      declareWinner();
+      return;
+    }
+
+    currentPlayer = currentPlayer === "X" ? "O" : "X";
     statusText.textContent = `Player ${currentPlayer}'s turn`;
   } else if (board[row][col] !== "") {
     showWarning("This spot is already taken!");
