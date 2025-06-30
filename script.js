@@ -49,40 +49,26 @@ function handleMove(event) {
   const col = parseInt(event.target.dataset.col);
 
   if (board[row][col] === "" && !isNextToLastMove(row, col)) {
-    // 🔥 Verwijder alleen de vorige zet van dezelfde speler
     const previousMove = document.querySelector(`.last-move-${currentPlayer}`);
     if (previousMove) {
       previousMove.classList.remove(`last-move-${currentPlayer}`);
     }
 
-    // Zet de nieuwe zet
     board[row][col] = currentPlayer;
     event.target.textContent = currentPlayer;
-    event.target.classList.add("taken", `last-move-${currentPlayer}`); // 🔥 Markeer nieuwe zet
-
+    event.target.classList.add("taken", `last-move-${currentPlayer}`);
     lastMove[currentPlayer] = { row, col };
 
     let points = checkForPoints(row, col, currentPlayer);
     score[currentPlayer] += points;
     updateScoreDisplay();
 
-const nextPlayer = currentPlayer === "X" ? "O" : "X";
+    // Check of beide spelers geen zetten meer kunnen doen
+    const xCanMove = hasValidMove("X");
+    const oCanMove = hasValidMove("O");
 
-if (!hasValidMove(nextPlayer)) {
-  if (!hasValidMove(currentPlayer)) {
-    gameActive = false;
-    declareWinner();
-    return;
-  } else {
-    // currentPlayer mag nog zetten, blijf bij dezelfde speler
-    statusText.textContent = `Player ${currentPlayer}'s turn`;
-    return;
-  }
-} else {
-  // Beide spelers kunnen nog zetten → wissel beurt
-  currentPlayer = nextPlayer;
-  statusText.textContent = `Player ${currentPlayer}'s turn`;
-}
+    if (!xCanMove && !oCanM
+
 
 
 currentPlayer = nextPlayer;
