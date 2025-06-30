@@ -66,11 +66,19 @@ function handleMove(event) {
     score[currentPlayer] += points;
     updateScoreDisplay();
 
-    if (isBoardFull()) {
-      gameActive = false;
-      declareWinner();
-      return;
-    }
+const nextPlayer = currentPlayer === "X" ? "O" : "X";
+
+if (!hasValidMove(nextPlayer)) {
+  if (!hasValidMove(currentPlayer)) {
+    gameActive = false;
+    declareWinner();
+    return;
+  }
+}
+
+currentPlayer = nextPlayer;
+statusText.textContent = `Player ${currentPlayer}'s turn`;
+
 
     currentPlayer = currentPlayer === "X" ? "O" : "X";
     statusText.textContent = `Player ${currentPlayer}'s turn`;
@@ -146,6 +154,22 @@ function checkForExistingFour(row, col, r, c, player) {
 
   return countBeforeMove === 4; // If there was already a 4-in-a-row, return true
 }
+
+function hasValidMove(player) {
+  const last = lastMove[player];
+  for (let row = 0; row < boardSize; row++) {
+    for (let col = 0; col < boardSize; col++) {
+      if (
+        board[row][col] === "" &&
+        (!last || Math.abs(row - last.row) > 1 || Math.abs(col - last.col) > 1)
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 
 function isBoardFull() {
   let emptyCells = 0;
