@@ -73,8 +73,17 @@ if (!hasValidMove(nextPlayer)) {
     gameActive = false;
     declareWinner();
     return;
+  } else {
+    // currentPlayer mag nog zetten, blijf bij dezelfde speler
+    statusText.textContent = `Player ${currentPlayer}'s turn`;
+    return;
   }
+} else {
+  // Beide spelers kunnen nog zetten → wissel beurt
+  currentPlayer = nextPlayer;
+  statusText.textContent = `Player ${currentPlayer}'s turn`;
 }
+
 
 currentPlayer = nextPlayer;
 statusText.textContent = `Player ${currentPlayer}'s turn`;
