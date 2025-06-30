@@ -65,6 +65,12 @@ function handleMove(event) {
     score[currentPlayer] += points;
     updateScoreDisplay();
 
+    if (totalAvailableMoves() <= 1) {
+      gameActive = false;
+      declareWinner();
+      return;
+    }
+
     const xCanMove = hasValidMove("X");
     const oCanMove = hasValidMove("O");
 
@@ -112,6 +118,20 @@ function hasValidMove(player) {
     }
   }
   return false;
+}
+
+function totalAvailableMoves() {
+  let count = 0;
+  for (let row = 0; row < boardSize; row++) {
+    for (let col = 0; col < boardSize; col++) {
+      if (board[row][col] === "") {
+        const forX = !lastMove.X || Math.abs(row - lastMove.X.row) > 1 || Math.abs(col - lastMove.X.col) > 1;
+        const forO = !lastMove.O || Math.abs(row - lastMove.O.row) > 1 || Math.abs(col - lastMove.O.col) > 1;
+        if (forX || forO) count++;
+      }
+    }
+  }
+  return count;
 }
 
 function isNextToLastMove(row, col) {
@@ -198,6 +218,10 @@ function declareWinner() {
   gameActive = false;
 }
 
+function resetGame() {
+  initializeGame();
+}
+
 function endGame() {
   if (!gameActive) return;
   gameActive = false;
@@ -207,11 +231,6 @@ function endGame() {
 function resetTotalScore() {
   totalScore = { X: 0, O: 0 };
   updateTotalScoreDisplay();
-}
-
-
-function resetGame() {
-  initializeGame();
 }
 
 function updateTotalScoreDisplay() {
