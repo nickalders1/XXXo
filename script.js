@@ -80,11 +80,12 @@ function handleMove(event) {
       return;
     }
 
-    if (bonusTurn) {
-      gameActive = false;
-      declareWinner();
-      return;
-    }
+if (bonusTurn && currentPlayer === "O") {
+  bonusTurn = false; // reset bonus na de beurt
+} else if (bonusTurn && currentPlayer === "X") {
+  return; // X mag niet meer, wacht op O
+}
+
 
     if (currentPlayer === "X" && !xCanMove && oCanMove) {
       bonusTurn = true;
