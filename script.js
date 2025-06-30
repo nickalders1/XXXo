@@ -65,7 +65,6 @@ function handleMove(event) {
     score[currentPlayer] += points;
     updateScoreDisplay();
 
-    // Als dit de bonusbeurt van O was, dan spel stoppen na deze zet
     if (bonusTurn && currentPlayer === "O") {
       bonusTurn = false;
       gameActive = false;
@@ -73,7 +72,6 @@ function handleMove(event) {
       return;
     }
 
-    // Check of beide spelers niks meer kunnen
     const xCanMove = hasValidMove("X");
     const oCanMove = hasValidMove("O");
 
@@ -83,36 +81,11 @@ function handleMove(event) {
       return;
     }
 
-    // Als X zichzelf vastzet en O nog kan → geef O bonusbeurt
     if (currentPlayer === "X" && !xCanMove && oCanMove) {
       bonusTurn = true;
       currentPlayer = "O";
       statusText.textContent = `Player O's bonus turn`;
       return;
-    }
-
-    // Als O niks meer kan en het is zijn beurt → spel stoppen
-    if (currentPlayer === "X" && !oCanMove) {
-      gameActive = false;
-      declareWinner();
-      return;
-    }
-
-    // Normale beurtwissel
-    currentPlayer = currentPlayer === "X" ? "O" : "X";
-    statusText.textContent = `Player ${currentPlayer}'s turn`;
-  } else if (board[row][col] !== "") {
-    showWarning("This spot is already taken!");
-  } else if (isNextToLastMove(row, col)) {
-    showWarning("You may not make a move next to your last move.");
-  }
-}
-
-
-
-
-    if (currentPlayer === "X" && !xCanMove && oCanMove) {
-      bonusTurn = true;
     }
 
     if (currentPlayer === "X" && !oCanMove) {
@@ -143,20 +116,6 @@ function hasValidMove(player) {
     }
   }
   return false;
-}
-
-function totalAvailableMoves() {
-  let count = 0;
-  for (let row = 0; row < boardSize; row++) {
-    for (let col = 0; col < boardSize; col++) {
-      if (board[row][col] === "") {
-        const forX = !lastMove.X || Math.abs(row - lastMove.X.row) > 1 || Math.abs(col - lastMove.X.col) > 1;
-        const forO = !lastMove.O || Math.abs(row - lastMove.O.row) > 1 || Math.abs(col - lastMove.O.col) > 1;
-        if (forX || forO) count++;
-      }
-    }
-  }
-  return count;
 }
 
 function isNextToLastMove(row, col) {
