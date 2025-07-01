@@ -87,11 +87,13 @@ function handleMove(event) {
       return;
     }
 
-if (isPointlessGame()) {
+const totalPlaced = board.flat().filter(cell => cell !== "").length;
+if (totalPlaced >= 6 && isPointlessGame()) {
   gameActive = false;
   declareWinner();
   return;
 }
+
 
 
     if (currentPlayer === "X" && !xCanMove && oCanMove) {
