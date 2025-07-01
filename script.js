@@ -88,7 +88,7 @@ function handleMove(event) {
     }
 
 const totalPlaced = board.flat().filter(cell => cell !== "").length;
-if (totalPlaced >= 6 && isPointlessGame()) {
+if (totalPlaced >= 18 && isPointlessGame()) {
   gameActive = false;
   declareWinner();
   return;
