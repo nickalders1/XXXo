@@ -63,6 +63,12 @@ function handleMove(event) {
 
     let points = checkForPoints(row, col, currentPlayer);
     score[currentPlayer] += points;
+    if (totalAvailableMoves() <= 1) {
+  gameActive = false;
+  declareWinner();
+  return;
+}
+
     updateScoreDisplay();
 
     if (bonusTurn && currentPlayer === "O") {
@@ -201,6 +207,21 @@ function declareWinner() {
   updateTotalScoreDisplay();
   gameActive = false;
 }
+
+function totalAvailableMoves() {
+  let count = 0;
+  for (let row = 0; row < boardSize; row++) {
+    for (let col = 0; col < boardSize; col++) {
+      if (board[row][col] === "") {
+        const forX = !lastMove.X || Math.abs(row - lastMove.X.row) > 1 || Math.abs(col - lastMove.X.col) > 1;
+        const forO = !lastMove.O || Math.abs(row - lastMove.O.row) > 1 || Math.abs(col - lastMove.O.col) > 1;
+        if (forX || forO) count++;
+      }
+    }
+  }
+  return count;
+}
+
 
 function resetGame() {
   initializeGame();
