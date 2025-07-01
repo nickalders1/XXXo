@@ -87,6 +87,13 @@ function handleMove(event) {
       return;
     }
 
+if (isPointlessGame()) {
+  gameActive = false;
+  declareWinner();
+  return;
+}
+
+
     if (currentPlayer === "X" && !xCanMove && oCanMove) {
       bonusTurn = true;
       currentPlayer = "O";
@@ -220,6 +227,43 @@ function totalAvailableMoves() {
     }
   }
   return count;
+}
+
+function isPointlessGame() {
+  for (let row = 0; row < boardSize; row++) {
+    for (let col = 0; col < boardSize; col++) {
+      if (board[row][col] !== "") continue;
+
+      // Mag X hier zetten?
+      const xLast = lastMove.X;
+      const xValid = !xLast || Math.abs(row - xLast.row) > 1 || Math.abs(col - xLast.col) > 1;
+      if (xValid && wouldScorePoint(row, col, "X")) return false;
+
+      // Mag O hier zetten?
+      const oLast = lastMove.O;
+      const oValid = !oLast || Math.abs(row - oLast.row) > 1 || Math.abs(col - oLast.col) > 1;
+      if (oValid && wouldScorePoint(row, col, "O")) return false;
+    }
+  }
+  return true;
+}
+
+function wouldScorePoint(row, col, player) {
+  const directions = [
+    { r: 0, c: 1 },
+    { r: 1, c: 0 },
+    { r: 1, c: 1 },
+    { r: 1, c: -1 },
+  ];
+
+  for (let { r, c } of directions) {
+    let count = 1;
+    count += countDirection(row, col, r, c, player);
+    count += countDirection(row, col, -r, -c, player);
+    if (count >= 4) return true;
+  }
+
+  return false;
 }
 
 
