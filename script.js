@@ -64,11 +64,7 @@ function handleMove(event) {
     updateScoreDisplay();
 
     const totalPlaced = board.flat().filter(cell => cell !== "").length;
-    if (totalPlaced >= 6 && isPointlessGame()) {
-      gameActive = false;
-      declareWinner();
-      return;
-    }
+    const oneSpotLeft = totalPlaced === boardSize * boardSize - 1;
 
     if (bonusTurn && currentPlayer === "O") {
       bonusTurn = false;
@@ -94,6 +90,12 @@ function handleMove(event) {
     }
 
     if (currentPlayer === "X" && !oCanMove) {
+      gameActive = false;
+      declareWinner();
+      return;
+    }
+
+    if (oneSpotLeft || isPointlessGame()) {
       gameActive = false;
       declareWinner();
       return;
@@ -208,7 +210,7 @@ function wouldScorePoint(row, col, player) {
 
   for (let { r, c } of directions) {
     let count = 1;
-    let spaces = 1;
+    let empty = 1;
 
     for (let i = 1; i < 5; i++) {
       const newRow = row + r * i;
@@ -219,8 +221,9 @@ function wouldScorePoint(row, col, player) {
         newCol >= 0 &&
         newCol < boardSize
       ) {
-        if (board[newRow][newCol] === player) count++;
-        else if (board[newRow][newCol] === "") spaces++;
+        const val = board[newRow][newCol];
+        if (val === player) count++;
+        else if (val === "") empty++;
         else break;
       }
     }
@@ -234,13 +237,14 @@ function wouldScorePoint(row, col, player) {
         newCol >= 0 &&
         newCol < boardSize
       ) {
-        if (board[newRow][newCol] === player) count++;
-        else if (board[newRow][newCol] === "") spaces++;
+        const val = board[newRow][newCol];
+        if (val === player) count++;
+        else if (val === "") empty++;
         else break;
       }
     }
 
-    if (count + spaces >= 4) return true;
+    if (count + empty >= 4) return true;
   }
 
   return false;
