@@ -15,9 +15,7 @@ totalScore = { X: 0, O: 0 };
 updateTotalScoreDisplay();
 
 function initializeGame() {
-  board = Array(boardSize)
-    .fill(null)
-    .map(() => Array(boardSize).fill(""));
+  board = Array(boardSize).fill(null).map(() => Array(boardSize).fill(""));
   currentPlayer = "X";
   gameActive = true;
   score = { X: 0, O: 0 };
@@ -63,13 +61,14 @@ function handleMove(event) {
 
     let points = checkForPoints(row, col, currentPlayer);
     score[currentPlayer] += points;
-    if (totalAvailableMoves() <= 1) {
-  gameActive = false;
-  declareWinner();
-  return;
-}
-
     updateScoreDisplay();
+
+    const totalPlaced = board.flat().filter(cell => cell !== "").length;
+    if (totalPlaced >= 6 && isPointlessGame()) {
+      gameActive = false;
+      declareWinner();
+      return;
+    }
 
     if (bonusTurn && currentPlayer === "O") {
       bonusTurn = false;
@@ -86,15 +85,6 @@ function handleMove(event) {
       declareWinner();
       return;
     }
-
-const totalPlaced = board.flat().filter(cell => cell !== "").length;
-if (totalPlaced >= 6 && isPointlessGame()) {
-  gameActive = false;
-  declareWinner();
-  return;
-}
-
-
 
     if (currentPlayer === "X" && !xCanMove && oCanMove) {
       bonusTurn = true;
@@ -196,46 +186,10 @@ function checkForExistingFour(row, col, r, c, player) {
   return countBeforeMove === 4;
 }
 
-function updateScoreDisplay() {
-  scoreXElement.textContent = score.X;
-  scoreOElement.textContent = score.O;
-}
-
-function declareWinner() {
-  if (score.X > score.O) {
-    winnerText.textContent = "PLAYER X WINS! 🎉";
-    totalScore.X++;
-  } else if (score.O > score.X) {
-    winnerText.textContent = "PLAYER O WINS! 🎉";
-    totalScore.O++;
-  } else {
-    winnerText.textContent = "It's a Tie!";
-  }
-  winnerText.style.display = "block";
-  newGameBtn.style.display = "block";
-  updateTotalScoreDisplay();
-  gameActive = false;
-}
-
-function totalAvailableMoves() {
-  let count = 0;
-  for (let row = 0; row < boardSize; row++) {
-    for (let col = 0; col < boardSize; col++) {
-      if (board[row][col] === "") {
-        const forX = !lastMove.X || Math.abs(row - lastMove.X.row) > 1 || Math.abs(col - lastMove.X.col) > 1;
-        const forO = !lastMove.O || Math.abs(row - lastMove.O.row) > 1 || Math.abs(col - lastMove.O.col) > 1;
-        if (forX || forO) count++;
-      }
-    }
-  }
-  return count;
-}
-
 function isPointlessGame() {
   for (let row = 0; row < boardSize; row++) {
     for (let col = 0; col < boardSize; col++) {
       if (board[row][col] !== "") continue;
-
       if (wouldScorePoint(row, col, "X") || wouldScorePoint(row, col, "O")) {
         return false;
       }
@@ -292,7 +246,26 @@ function wouldScorePoint(row, col, player) {
   return false;
 }
 
+function updateScoreDisplay() {
+  scoreXElement.textContent = score.X;
+  scoreOElement.textContent = score.O;
+}
 
+function declareWinner() {
+  if (score.X > score.O) {
+    winnerText.textContent = "PLAYER X WINS! 🎉";
+    totalScore.X++;
+  } else if (score.O > score.X) {
+    winnerText.textContent = "PLAYER O WINS! 🎉";
+    totalScore.O++;
+  } else {
+    winnerText.textContent = "It's a Tie!";
+  }
+  winnerText.style.display = "block";
+  newGameBtn.style.display = "block";
+  updateTotalScoreDisplay();
+  gameActive = false;
+}
 
 function resetGame() {
   initializeGame();
