@@ -15,7 +15,9 @@ totalScore = { X: 0, O: 0 };
 updateTotalScoreDisplay();
 
 function initializeGame() {
-  board = Array(boardSize).fill(null).map(() => Array(boardSize).fill(""));
+  board = Array(boardSize)
+    .fill(null)
+    .map(() => Array(boardSize).fill(""));
   currentPlayer = "X";
   gameActive = true;
   score = { X: 0, O: 0 };
@@ -63,9 +65,6 @@ function handleMove(event) {
     score[currentPlayer] += points;
     updateScoreDisplay();
 
-    const totalPlaced = board.flat().filter(cell => cell !== "").length;
-    const oneSpotLeft = totalPlaced === boardSize * boardSize - 1;
-
     if (bonusTurn && currentPlayer === "O") {
       bonusTurn = false;
       gameActive = false;
@@ -76,7 +75,10 @@ function handleMove(event) {
     const xCanMove = hasValidMove("X");
     const oCanMove = hasValidMove("O");
 
-    if (!xCanMove && !oCanMove) {
+    const xPotential = hasPotentialPoints("X");
+    const oPotential = hasPotentialPoints("O");
+
+    if ((!xCanMove && !oCanMove) || (!xPotential && !oPotential)) {
       gameActive = false;
       declareWinner();
       return;
@@ -90,12 +92,6 @@ function handleMove(event) {
     }
 
     if (currentPlayer === "X" && !oCanMove) {
-      gameActive = false;
-      declareWinner();
-      return;
-    }
-
-    if (oneSpotLeft || isPointlessGame()) {
       gameActive = false;
       declareWinner();
       return;
@@ -119,6 +115,29 @@ function hasValidMove(player) {
         (!last || Math.abs(row - last.row) > 1 || Math.abs(col - last.col) > 1)
       ) {
         return true;
+      }
+    }
+  }
+  return false;
+}
+
+function hasPotentialPoints(player) {
+  for (let row = 0; row < boardSize; row++) {
+    for (let col = 0; col < boardSize; col++) {
+      if (board[row][col] !== "") continue;
+
+      const directions = [
+        { r: 0, c: 1 },
+        { r: 1, c: 0 },
+        { r: 1, c: 1 },
+        { r: 1, c: -1 },
+      ];
+
+      for (let { r, c } of directions) {
+        let count = 1;
+        count += countDirection(row, col, r, c, player);
+        count += countDirection(row, col, -r, -c, player);
+        if (count >= 4) return true;
       }
     }
   }
@@ -186,68 +205,6 @@ function checkForExistingFour(row, col, r, c, player) {
   countBeforeMove += countDirection(row - r, col - c, -r, -c, player);
   countBeforeMove += countDirection(row + r, col + c, r, c, player);
   return countBeforeMove === 4;
-}
-
-function isPointlessGame() {
-  for (let row = 0; row < boardSize; row++) {
-    for (let col = 0; col < boardSize; col++) {
-      if (board[row][col] !== "") continue;
-      if (wouldScorePoint(row, col, "X") || wouldScorePoint(row, col, "O")) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-function wouldScorePoint(row, col, player) {
-  const directions = [
-    { r: 0, c: 1 },
-    { r: 1, c: 0 },
-    { r: 1, c: 1 },
-    { r: 1, c: -1 },
-  ];
-
-  for (let { r, c } of directions) {
-    let count = 1;
-    let empty = 1;
-
-    for (let i = 1; i < 5; i++) {
-      const newRow = row + r * i;
-      const newCol = col + c * i;
-      if (
-        newRow >= 0 &&
-        newRow < boardSize &&
-        newCol >= 0 &&
-        newCol < boardSize
-      ) {
-        const val = board[newRow][newCol];
-        if (val === player) count++;
-        else if (val === "") empty++;
-        else break;
-      }
-    }
-
-    for (let i = 1; i < 5; i++) {
-      const newRow = row - r * i;
-      const newCol = col - c * i;
-      if (
-        newRow >= 0 &&
-        newRow < boardSize &&
-        newCol >= 0 &&
-        newCol < boardSize
-      ) {
-        const val = board[newRow][newCol];
-        if (val === player) count++;
-        else if (val === "") empty++;
-        else break;
-      }
-    }
-
-    if (count + empty >= 4) return true;
-  }
-
-  return false;
 }
 
 function updateScoreDisplay() {
