@@ -88,7 +88,7 @@ function handleMove(event) {
     }
 
 const totalPlaced = board.flat().filter(cell => cell !== "").length;
-if (totalPlaced >= 18 && isPointlessGame()) {
+if (totalPlaced >= 6 && isPointlessGame()) {
   gameActive = false;
   declareWinner();
   return;
@@ -236,19 +236,14 @@ function isPointlessGame() {
     for (let col = 0; col < boardSize; col++) {
       if (board[row][col] !== "") continue;
 
-      // Mag X hier zetten?
-      const xLast = lastMove.X;
-      const xValid = !xLast || Math.abs(row - xLast.row) > 1 || Math.abs(col - xLast.col) > 1;
-      if (xValid && wouldScorePoint(row, col, "X")) return false;
-
-      // Mag O hier zetten?
-      const oLast = lastMove.O;
-      const oValid = !oLast || Math.abs(row - oLast.row) > 1 || Math.abs(col - oLast.col) > 1;
-      if (oValid && wouldScorePoint(row, col, "O")) return false;
+      if (wouldScorePoint(row, col, "X") || wouldScorePoint(row, col, "O")) {
+        return false;
+      }
     }
   }
   return true;
 }
+
 
 function wouldScorePoint(row, col, player) {
   const directions = [
