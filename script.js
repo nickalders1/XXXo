@@ -244,7 +244,6 @@ function isPointlessGame() {
   return true;
 }
 
-
 function wouldScorePoint(row, col, player) {
   const directions = [
     { r: 0, c: 1 },
@@ -255,13 +254,44 @@ function wouldScorePoint(row, col, player) {
 
   for (let { r, c } of directions) {
     let count = 1;
-    count += countDirection(row, col, r, c, player);
-    count += countDirection(row, col, -r, -c, player);
-    if (count >= 4) return true;
+    let spaces = 1;
+
+    for (let i = 1; i < 5; i++) {
+      const newRow = row + r * i;
+      const newCol = col + c * i;
+      if (
+        newRow >= 0 &&
+        newRow < boardSize &&
+        newCol >= 0 &&
+        newCol < boardSize
+      ) {
+        if (board[newRow][newCol] === player) count++;
+        else if (board[newRow][newCol] === "") spaces++;
+        else break;
+      }
+    }
+
+    for (let i = 1; i < 5; i++) {
+      const newRow = row - r * i;
+      const newCol = col - c * i;
+      if (
+        newRow >= 0 &&
+        newRow < boardSize &&
+        newCol >= 0 &&
+        newCol < boardSize
+      ) {
+        if (board[newRow][newCol] === player) count++;
+        else if (board[newRow][newCol] === "") spaces++;
+        else break;
+      }
+    }
+
+    if (count + spaces >= 4) return true;
   }
 
   return false;
 }
+
 
 
 function resetGame() {
