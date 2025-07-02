@@ -15,7 +15,9 @@ totalScore = { X: 0, O: 0 };
 updateTotalScoreDisplay();
 
 function initializeGame() {
-  board = Array(boardSize).fill(null).map(() => Array(boardSize).fill(""));
+  board = Array(boardSize)
+    .fill(null)
+    .map(() => Array(boardSize).fill(""));
   currentPlayer = "X";
   gameActive = true;
   score = { X: 0, O: 0 };
@@ -50,7 +52,8 @@ function handleMove(event) {
 
   if (board[row][col] === "" && !isNextToLastMove(row, col)) {
     const previousMove = document.querySelector(`.last-move-${currentPlayer}`);
-    if (previousMove) previousMove.classList.remove(`last-move-${currentPlayer}`);
+    if (previousMove)
+      previousMove.classList.remove(`last-move-${currentPlayer}`);
 
     board[row][col] = currentPlayer;
     event.target.textContent = currentPlayer;
@@ -114,8 +117,14 @@ function anyPotentialPoints() {
     for (let col = 0; col < boardSize; col++) {
       if (board[row][col] !== "") continue;
       if (
-        (lastMove["X"] && (Math.abs(row - lastMove["X"].row) > 1 || Math.abs(col - lastMove["X"].col) > 1) && checkForPoints(row, col, "X") > 0) ||
-        (lastMove["O"] && (Math.abs(row - lastMove["O"].row) > 1 || Math.abs(col - lastMove["O"].col) > 1) && checkForPoints(row, col, "O") > 0)
+        (lastMove["X"] &&
+          (Math.abs(row - lastMove["X"].row) > 1 ||
+            Math.abs(col - lastMove["X"].col) > 1) &&
+          checkForPoints(row, col, "X") > 0) ||
+        (lastMove["O"] &&
+          (Math.abs(row - lastMove["O"].row) > 1 ||
+            Math.abs(col - lastMove["O"].col) > 1) &&
+          checkForPoints(row, col, "O") > 0)
       ) {
         return true;
       }
@@ -153,7 +162,12 @@ function showWarning(message) {
 }
 
 function checkForPoints(row, col, player) {
-  const directions = [{ r: 0, c: 1 }, { r: 1, c: 0 }, { r: 1, c: 1 }, { r: 1, c: -1 }];
+  const directions = [
+    { r: 0, c: 1 },
+    { r: 1, c: 0 },
+    { r: 1, c: 1 },
+    { r: 1, c: -1 },
+  ];
   let totalPoints = 0;
   for (let { r, c } of directions) {
     let count = 1;
