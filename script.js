@@ -74,6 +74,12 @@ function handleMove(event) {
     const xCanMove = hasValidMove("X");
     const oCanMove = hasValidMove("O");
 
+    if (countEmptyCells() <= 1) {
+      gameActive = false;
+      declareWinner();
+      return;
+    }
+
     if ((!xCanMove && !oCanMove) || !anyPotentialPoints()) {
       gameActive = false;
       declareWinner();
@@ -252,6 +258,16 @@ function resetTotalScore() {
 function updateTotalScoreDisplay() {
   totalScoreXElement.textContent = totalScore.X;
   totalScoreOElement.textContent = totalScore.O;
+}
+
+function countEmptyCells() {
+  let count = 0;
+  for (let row = 0; row < boardSize; row++) {
+    for (let col = 0; col < boardSize; col++) {
+      if (board[row][col] === "") count++;
+    }
+  }
+  return count;
 }
 
 initializeGame();
