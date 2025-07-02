@@ -64,17 +64,17 @@ function handleMove(event) {
     score[currentPlayer] += points;
     updateScoreDisplay();
 
-    const xCanMove = hasValidMove("X");
-    const oCanMove = hasValidMove("O");
-
-    if (!xCanMove && !oCanMove) {
+    if (bonusTurn && currentPlayer === "O") {
+      bonusTurn = false;
       gameActive = false;
       declareWinner();
       return;
     }
 
-    if (bonusTurn && currentPlayer === "O") {
-      bonusTurn = false;
+    const xCanMove = hasValidMove("X");
+    const oCanMove = hasValidMove("O");
+
+    if ((!xCanMove && !oCanMove) || !anyPotentialPoints()) {
       gameActive = false;
       declareWinner();
       return;
@@ -87,7 +87,7 @@ function handleMove(event) {
       return;
     }
 
-    if (isBoardAlmostFull() || !anyPotentialPoints()) {
+    if (currentPlayer === "X" && !oCanMove) {
       gameActive = false;
       declareWinner();
       return;
@@ -100,37 +100,6 @@ function handleMove(event) {
   } else if (isNextToLastMove(row, col)) {
     showWarning("You may not make a move next to your last move.");
   }
-}
-
-function isBoardAlmostFull() {
-  let empty = 0;
-  for (let row = 0; row < boardSize; row++) {
-    for (let col = 0; col < boardSize; col++) {
-      if (board[row][col] === "") empty++;
-    }
-  }
-  return empty <= 1;
-}
-
-function anyPotentialPoints() {
-  for (let row = 0; row < boardSize; row++) {
-    for (let col = 0; col < boardSize; col++) {
-      if (board[row][col] !== "") continue;
-      if (
-        (lastMove["X"] &&
-          (Math.abs(row - lastMove["X"].row) > 1 ||
-            Math.abs(col - lastMove["X"].col) > 1) &&
-          checkForPoints(row, col, "X") > 0) ||
-        (lastMove["O"] &&
-          (Math.abs(row - lastMove["O"].row) > 1 ||
-            Math.abs(col - lastMove["O"].col) > 1) &&
-          checkForPoints(row, col, "O") > 0)
-      ) {
-        return true;
-      }
-    }
-  }
-  return false;
 }
 
 function hasValidMove(player) {
@@ -169,16 +138,19 @@ function checkForPoints(row, col, player) {
     { r: 1, c: -1 },
   ];
   let totalPoints = 0;
+
   for (let { r, c } of directions) {
     let count = 1;
     count += countDirection(row, col, r, c, player);
     count += countDirection(row, col, -r, -c, player);
+
     if (count === 4) totalPoints += 1;
     else if (count === 5) {
       let wasFourInARow = checkForExistingFour(row, col, r, c, player);
       totalPoints += wasFourInARow ? 1 : 2;
     }
   }
+
   return totalPoints;
 }
 
@@ -205,6 +177,40 @@ function checkForExistingFour(row, col, r, c, player) {
   countBeforeMove += countDirection(row - r, col - c, -r, -c, player);
   countBeforeMove += countDirection(row + r, col + c, r, c, player);
   return countBeforeMove === 4;
+}
+
+function anyPotentialPoints() {
+  const directions = [
+    { r: 0, c: 1 },
+    { r: 1, c: 0 },
+    { r: 1, c: 1 },
+    { r: 1, c: -1 },
+  ];
+
+  for (let row = 0; row < boardSize; row++) {
+    for (let col = 0; col < boardSize; col++) {
+      if (board[row][col] !== "") continue;
+      for (let { r, c } of directions) {
+        let count = 1;
+        let empty = 1;
+        for (let i = 1; i < 5; i++) {
+          let newRow = row + r * i;
+          let newCol = col + c * i;
+          if (
+            newRow >= 0 &&
+            newRow < boardSize &&
+            newCol >= 0 &&
+            newCol < boardSize
+          ) {
+            if (board[newRow][newCol] === "") empty++;
+            else count++;
+          }
+        }
+        if (count + empty >= 4) return true;
+      }
+    }
+  }
+  return false;
 }
 
 function updateScoreDisplay() {
