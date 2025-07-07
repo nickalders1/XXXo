@@ -4,7 +4,7 @@ body {
 }
 
 body {
-  background-color: [#0e1014]; /* Pas het pad aan als nodig */
+  background-color: #0e1014; /* Pas het pad aan als nodig */
   background-size: cover; /* Zorgt dat de afbeelding het hele scherm vult */
   background-position: center; /* Centreert de afbeelding */
   background-repeat: no-repeat; /* Voorkomt herhaling van de afbeelding */
