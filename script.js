@@ -1,489 +1,273 @@
-function anyPotentialPoints(board, lastMove) {
-  console.log("🔍 Checking for potential points...");
+const boardSize = 5;
+let board, currentPlayer, gameActive, score, lastMove, totalScore;
+let bonusTurn = false;
 
-  // Als er nog veel lege vakjes zijn, zijn er waarschijnlijk nog punten mogelijk
-  const emptyCells = countEmptyCells(board);
-  if (emptyCells > 12) {
-    console.log(`✅ Many empty cells (${emptyCells}), points still possible`);
-    return true;
+const boardElement = document.getElementById("game-board");
+const statusText = document.getElementById("status");
+const scoreXElement = document.getElementById("scoreX");
+const scoreOElement = document.getElementById("scoreO");
+const winnerText = document.getElementById("winner-text");
+const newGameBtn = document.getElementById("new-game-btn");
+const totalScoreXElement = document.getElementById("totalScoreX");
+const totalScoreOElement = document.getElementById("totalScoreO");
+
+totalScore = { X: 0, O: 0 };
+updateTotalScoreDisplay();
+
+function initializeGame() {
+  board = Array(boardSize)
+    .fill(null)
+    .map(() => Array(boardSize).fill(""));
+  currentPlayer = "X";
+  gameActive = true;
+  score = { X: 0, O: 0 };
+  lastMove = { X: null, O: null };
+  bonusTurn = false;
+  updateScoreDisplay();
+  statusText.textContent = "Player X's turn";
+  winnerText.style.display = "none";
+  newGameBtn.style.display = "none";
+  createBoard();
+}
+
+function createBoard() {
+  boardElement.innerHTML = "";
+  for (let row = 0; row < boardSize; row++) {
+    for (let col = 0; col < boardSize; col++) {
+      const cell = document.createElement("div");
+      cell.classList.add("cell");
+      cell.dataset.row = row;
+      cell.dataset.col = col;
+      cell.addEventListener("click", handleMove);
+      boardElement.appendChild(cell);
+    }
   }
+}
 
-  // Voor beide spelers, check realistisch of ze nog kunnen scoren
-  for (const player of ["X", "O"]) {
-    const last = lastMove[player];
-    const opponent = player === "X" ? "O" : "X";
-    console.log(`🎯 Checking player ${player}, last move:`, last);
-    const BOARD_SIZE = 15; // Declare BOARD_SIZE variable
+function handleMove(event) {
+  if (!gameActive) return;
 
-    function anyPotentialPoints(board, lastMove) {
-      console.log("🔍 Checking for potential points...");
+  const row = parseInt(event.target.dataset.row);
+  const col = parseInt(event.target.dataset.col);
 
-      // Als er nog veel lege vakjes zijn, zijn er waarschijnlijk nog punten mogelijk
-      const emptyCells = countEmptyCells(board);
-      if (emptyCells > 12) {
-        console.log(
-          `✅ Many empty cells (${emptyCells}), points still possible`
-        );
+  if (board[row][col] === "" && !isNextToLastMove(row, col)) {
+    const previousMove = document.querySelector(`.last-move-${currentPlayer}`);
+    if (previousMove)
+      previousMove.classList.remove(`last-move-${currentPlayer}`);
+
+    board[row][col] = currentPlayer;
+    event.target.textContent = currentPlayer;
+    event.target.classList.add("taken", `last-move-${currentPlayer}`);
+    lastMove[currentPlayer] = { row, col };
+
+    let points = checkForPoints(row, col, currentPlayer);
+    score[currentPlayer] += points;
+    updateScoreDisplay();
+
+    if (bonusTurn && currentPlayer === "O") {
+      bonusTurn = false;
+      gameActive = false;
+      declareWinner();
+      return;
+    }
+
+    const xCanMove = hasValidMove("X");
+    const oCanMove = hasValidMove("O");
+
+    if (countEmptyCells() <= 1) {
+      gameActive = false;
+      declareWinner();
+      return;
+    }
+
+    if ((!xCanMove && !oCanMove) || !anyPotentialPoints()) {
+      gameActive = false;
+      declareWinner();
+      return;
+    }
+
+    if (currentPlayer === "X" && !xCanMove && oCanMove) {
+      bonusTurn = true;
+      currentPlayer = "O";
+      statusText.textContent = `Player O's bonus turn`;
+      return;
+    }
+
+    if (currentPlayer === "X" && !oCanMove) {
+      gameActive = false;
+      declareWinner();
+      return;
+    }
+
+    currentPlayer = currentPlayer === "X" ? "O" : "X";
+    statusText.textContent = `Player ${currentPlayer}'s turn`;
+  } else if (board[row][col] !== "") {
+    showWarning("This spot is already taken!");
+  } else if (isNextToLastMove(row, col)) {
+    showWarning("You may not make a move next to your last move.");
+  }
+}
+
+function hasValidMove(player) {
+  const last = lastMove[player];
+  for (let row = 0; row < boardSize; row++) {
+    for (let col = 0; col < boardSize; col++) {
+      if (
+        board[row][col] === "" &&
+        (!last || Math.abs(row - last.row) > 1 || Math.abs(col - last.col) > 1)
+      ) {
         return true;
       }
-
-      // Voor beide spelers, check realistisch of ze nog kunnen scoren
-      for (const player of ["X", "O"]) {
-        const last = lastMove[player];
-        const opponent = player === "X" ? "O" : "X";
-        console.log(`🎯 Checking player ${player}, last move:`, last);
-
-        // Check alle lege vakjes die geldig zijn voor deze speler
-        for (let row = 0; row < BOARD_SIZE; row++) {
-          for (let col = 0; col < BOARD_SIZE; col++) {
-            // Skip als vakje bezet is
-            if (board[row][col] !== "") continue;
-
-            // Skip als het naast de laatste zet van deze speler is
-            if (
-              last &&
-              Math.abs(row - last.row) <= 1 &&
-              Math.abs(col - last.col) <= 1
-            ) {
-              continue;
-            }
-
-            // Simuleer het plaatsen van dit symbool en check direct voor punten
-            const testBoard = board.map((r) => [...r]);
-            testBoard[row][col] = player;
-            const directPoints = checkForPoints(testBoard, row, col, player);
-
-            if (directPoints > 0) {
-              console.log(
-                `✅ Player ${player} can score ${directPoints} points directly at (${row}, ${col})`
-              );
-              return true;
-            }
-
-            // Check ook voor potentiële lijnen (minder streng dan voorheen)
-            const directions = [
-              { r: 0, c: 1, name: "horizontal" },
-              { r: 1, c: 0, name: "vertical" },
-              { r: 1, c: 1, name: "diagonal \\" },
-              { r: 1, c: -1, name: "diagonal /" },
-            ];
-
-            for (const { r, c, name } of directions) {
-              // Check of we een lijn van 4 kunnen maken in deze richting
-              for (let lineStart = -3; lineStart <= 0; lineStart++) {
-                let playerCount = 0;
-                let emptyCount = 0;
-                let opponentCount = 0;
-                let hasCurrentPos = false;
-
-                // Check 4 posities in deze lijn (voor 4 op een rij)
-                for (let i = 0; i < 4; i++) {
-                  const checkRow = row + r * (lineStart + i);
-                  const checkCol = col + c * (lineStart + i);
-
-                  if (
-                    checkRow >= 0 &&
-                    checkRow < BOARD_SIZE &&
-                    checkCol >= 0 &&
-                    checkCol < BOARD_SIZE
-                  ) {
-                    if (checkRow === row && checkCol === col) {
-                      hasCurrentPos = true;
-                      emptyCount++;
-                    } else if (board[checkRow][checkCol] === player) {
-                      playerCount++;
-                    } else if (board[checkRow][checkCol] === "") {
-                      emptyCount++;
-                    } else if (board[checkRow][checkCol] === opponent) {
-                      opponentCount++;
-                    }
-                  } else {
-                    opponentCount++; // Buiten bord = geblokkeerd
-                  }
-                }
-
-                // Als deze lijn de huidige positie bevat, geen tegenstander heeft,
-                // en genoeg ruimte heeft voor 4 op een rij
-                if (
-                  hasCurrentPos &&
-                  opponentCount === 0 &&
-                  playerCount + emptyCount >= 4
-                ) {
-                  console.log(
-                    `✅ Player ${player} has potential 4-in-a-row in ${name} direction at (${row}, ${col})`
-                  );
-                  console.log(
-                    `   - Player pieces: ${playerCount}, Empty spaces: ${emptyCount}`
-                  );
-                  return true;
-                }
-              }
-            }
-          }
-        }
-      }
-
-      console.log("❌ No realistic scoring opportunities left");
-      return false;
-    }
-
-    // Voeg ook deze helper functie toe:
-    function countEmptyCells(board) {
-      let count = 0;
-      for (let row = 0; row < BOARD_SIZE; row++) {
-        for (let col = 0; col < BOARD_SIZE; col++) {
-          if (board[row][col] === "") count++;
-        }
-      }
-      return count;
-    }
-
-    // Declare gameState variable
-    const gameState = {
-      gameActive: true,
-      board: Array.from({ length: BOARD_SIZE }, () =>
-        Array(BOARD_SIZE).fill("")
-      ),
-      score: { X: 0, O: 0 },
-      currentPlayer: "X",
-      lastMove: { X: null, O: null },
-      bonusTurn: false,
-    };
-
-    // Declare updateStatus function
-    function updateStatus(message) {
-      console.log(message);
-    }
-
-    // Declare declareWinner function
-    function declareWinner() {
-      console.log(`Player ${gameState.currentPlayer} wins!`);
-    }
-
-    // Declare hasValidMove function
-    function hasValidMove(player) {
-      // Placeholder for hasValidMove logic
-      return true;
-    }
-
-    // Declare checkForPoints function
-    function checkForPoints(board, row, col, player) {
-      // Placeholder for checkForPoints logic
-      return 0;
-    }
-
-    // Declare isNextToLastMove function
-    function isNextToLastMove(row, col, player) {
-      // Placeholder for isNextToLastMove logic
-      return false;
-    }
-
-    // Declare updateBoard function
-    function updateBoard() {
-      console.log("Board updated");
-    }
-
-    // Declare updateScore function
-    function updateScore() {
-      console.log("Score updated");
-    }
-
-    // Update de makeMove functie om de nieuwe logica te gebruiken (vervang de bestaande makeMove functie):
-    function makeMove(row, col) {
-      if (!gameState.gameActive) return;
-
-      if (gameState.board[row][col] !== "") {
-        updateStatus("This spot is already taken!");
-        setTimeout(
-          () => updateStatus(`Player ${gameState.currentPlayer}'s turn`),
-          2000
-        );
-        return;
-      }
-
-      if (isNextToLastMove(row, col, gameState.currentPlayer)) {
-        updateStatus("You may not make a move next to your last move.");
-        setTimeout(
-          () => updateStatus(`Player ${gameState.currentPlayer}'s turn`),
-          2000
-        );
-        return;
-      }
-
-      const newBoard = gameState.board.map((row) => [...row]);
-      newBoard[row][col] = gameState.currentPlayer;
-
-      const points = checkForPoints(
-        newBoard,
-        row,
-        col,
-        gameState.currentPlayer
-      );
-      gameState.score[gameState.currentPlayer] += points;
-
-      gameState.lastMove[gameState.currentPlayer] = { row, col };
-      gameState.board = newBoard;
-
-      updateBoard();
-      updateScore();
-
-      if (gameState.bonusTurn && gameState.currentPlayer === "O") {
-        gameState.bonusTurn = false;
-        gameState.gameActive = false;
-        declareWinner();
-        return;
-      }
-
-      const xCanMove = hasValidMove("X");
-      const oCanMove = hasValidMove("O");
-
-      // ✨ Check ook of er nog punten te halen zijn
-      const stillPointsPossible = anyPotentialPoints(
-        gameState.board,
-        gameState.lastMove
-      );
-
-      // Debug logging
-      console.log("🎮 Game state check:", {
-        emptyCells: countEmptyCells(gameState.board),
-        xCanMove,
-        oCanMove,
-        stillPointsPossible,
-      });
-
-      if (
-        countEmptyCells(gameState.board) <= 1 ||
-        (!xCanMove && !oCanMove) ||
-        !stillPointsPossible
-      ) {
-        let endReason = "";
-        if (countEmptyCells(gameState.board) <= 1) {
-          endReason = "Board is full";
-        } else if (!xCanMove && !oCanMove) {
-          endReason = "No valid moves left";
-        } else if (!stillPointsPossible) {
-          endReason = "No more points possible";
-        }
-
-        console.log(`🏁 Game ended: ${endReason}`);
-        gameState.gameActive = false;
-        declareWinner();
-        return;
-      }
-
-      if (gameState.currentPlayer === "X" && !xCanMove && oCanMove) {
-        gameState.bonusTurn = true;
-        gameState.currentPlayer = "O";
-        updateStatus("Player O's bonus turn");
-        return;
-      }
-
-      if (gameState.currentPlayer === "X" && !oCanMove) {
-        gameState.gameActive = false;
-        declareWinner();
-        return;
-      }
-
-      gameState.currentPlayer = gameState.currentPlayer === "X" ? "O" : "X";
-      updateStatus(`Player ${gameState.currentPlayer}'s turn`);
-    }
-
-    // Check alle lege vakjes die geldig zijn voor deze speler
-    for (let row = 0; row < BOARD_SIZE; row++) {
-      for (let col = 0; col < BOARD_SIZE; col++) {
-        // Skip als vakje bezet is
-        if (board[row][col] !== "") continue;
-
-        // Skip als het naast de laatste zet van deze speler is
-        if (
-          last &&
-          Math.abs(row - last.row) <= 1 &&
-          Math.abs(col - last.col) <= 1
-        ) {
-          continue;
-        }
-
-        // Simuleer het plaatsen van dit symbool en check direct voor punten
-        const testBoard = board.map((r) => [...r]);
-        testBoard[row][col] = player;
-        const directPoints = checkForPoints(testBoard, row, col, player);
-
-        if (directPoints > 0) {
-          console.log(
-            `✅ Player ${player} can score ${directPoints} points directly at (${row}, ${col})`
-          );
-          return true;
-        }
-
-        // Check ook voor potentiële lijnen (minder streng dan voorheen)
-        const directions = [
-          { r: 0, c: 1, name: "horizontal" },
-          { r: 1, c: 0, name: "vertical" },
-          { r: 1, c: 1, name: "diagonal \\" },
-          { r: 1, c: -1, name: "diagonal /" },
-        ];
-
-        for (const { r, c, name } of directions) {
-          // Check of we een lijn van 4 kunnen maken in deze richting
-          for (let lineStart = -3; lineStart <= 0; lineStart++) {
-            let playerCount = 0;
-            let emptyCount = 0;
-            let opponentCount = 0;
-            let hasCurrentPos = false;
-
-            // Check 4 posities in deze lijn (voor 4 op een rij)
-            for (let i = 0; i < 4; i++) {
-              const checkRow = row + r * (lineStart + i);
-              const checkCol = col + c * (lineStart + i);
-
-              if (
-                checkRow >= 0 &&
-                checkRow < BOARD_SIZE &&
-                checkCol >= 0 &&
-                checkCol < BOARD_SIZE
-              ) {
-                if (checkRow === row && checkCol === col) {
-                  hasCurrentPos = true;
-                  emptyCount++;
-                } else if (board[checkRow][checkCol] === player) {
-                  playerCount++;
-                } else if (board[checkRow][checkCol] === "") {
-                  emptyCount++;
-                } else if (board[checkRow][checkCol] === opponent) {
-                  opponentCount++;
-                }
-              } else {
-                opponentCount++; // Buiten bord = geblokkeerd
-              }
-            }
-
-            // Als deze lijn de huidige positie bevat, geen tegenstander heeft,
-            // en genoeg ruimte heeft voor 4 op een rij
-            if (
-              hasCurrentPos &&
-              opponentCount === 0 &&
-              playerCount + emptyCount >= 4
-            ) {
-              console.log(
-                `✅ Player ${player} has potential 4-in-a-row in ${name} direction at (${row}, ${col})`
-              );
-              console.log(
-                `   - Player pieces: ${playerCount}, Empty spaces: ${emptyCount}`
-              );
-              return true;
-            }
-          }
-        }
-      }
     }
   }
-
-  console.log("❌ No realistic scoring opportunities left");
   return false;
 }
 
-// Voeg ook deze helper functie toe:
-function countEmptyCells(board) {
+function isNextToLastMove(row, col) {
+  const last = lastMove[currentPlayer];
+  if (!last) return false;
+  return Math.abs(row - last.row) <= 1 && Math.abs(col - last.col) <= 1;
+}
+
+function showWarning(message) {
+  statusText.textContent = message;
+  setTimeout(() => {
+    statusText.textContent = `Player ${currentPlayer}'s turn`;
+  }, 4000);
+}
+
+function checkForPoints(row, col, player) {
+  const directions = [
+    { r: 0, c: 1 },
+    { r: 1, c: 0 },
+    { r: 1, c: 1 },
+    { r: 1, c: -1 },
+  ];
+  let totalPoints = 0;
+
+  for (let { r, c } of directions) {
+    let count = 1;
+    count += countDirection(row, col, r, c, player);
+    count += countDirection(row, col, -r, -c, player);
+
+    if (count === 4) totalPoints += 1;
+    else if (count === 5) {
+      let wasFourInARow = checkForExistingFour(row, col, r, c, player);
+      totalPoints += wasFourInARow ? 1 : 2;
+    }
+  }
+
+  return totalPoints;
+}
+
+function countDirection(row, col, r, c, player) {
   let count = 0;
-  for (let row = 0; row < BOARD_SIZE; row++) {
-    for (let col = 0; col < BOARD_SIZE; col++) {
+  for (let i = 1; i < 5; i++) {
+    let newRow = row + r * i;
+    let newCol = col + c * i;
+    if (
+      newRow >= 0 &&
+      newRow < boardSize &&
+      newCol >= 0 &&
+      newCol < boardSize &&
+      board[newRow][newCol] === player
+    ) {
+      count++;
+    } else break;
+  }
+  return count;
+}
+
+function checkForExistingFour(row, col, r, c, player) {
+  let countBeforeMove = 1;
+  countBeforeMove += countDirection(row - r, col - c, -r, -c, player);
+  countBeforeMove += countDirection(row + r, col + c, r, c, player);
+  return countBeforeMove === 4;
+}
+
+function anyPotentialPoints() {
+  const directions = [
+    { r: 0, c: 1 },
+    { r: 1, c: 0 },
+    { r: 1, c: 1 },
+    { r: 1, c: -1 },
+  ];
+
+  for (let row = 0; row < boardSize; row++) {
+    for (let col = 0; col < boardSize; col++) {
+      if (board[row][col] !== "") continue;
+      for (let { r, c } of directions) {
+        let count = 1;
+        let empty = 1;
+        for (let i = 1; i < 5; i++) {
+          let newRow = row + r * i;
+          let newCol = col + c * i;
+          if (
+            newRow >= 0 &&
+            newRow < boardSize &&
+            newCol >= 0 &&
+            newCol < boardSize
+          ) {
+            if (board[newRow][newCol] === "") empty++;
+            else count++;
+          }
+        }
+        if (count + empty >= 4) return true;
+      }
+    }
+  }
+  return false;
+}
+
+function updateScoreDisplay() {
+  scoreXElement.textContent = score.X;
+  scoreOElement.textContent = score.O;
+}
+
+function declareWinner() {
+  if (score.X > score.O) {
+    winnerText.textContent = "PLAYER X WINS! 🎉";
+    totalScore.X++;
+  } else if (score.O > score.X) {
+    winnerText.textContent = "PLAYER O WINS! 🎉";
+    totalScore.O++;
+  } else {
+    winnerText.textContent = "It's a Tie!";
+  }
+  winnerText.style.display = "block";
+  newGameBtn.style.display = "block";
+  updateTotalScoreDisplay();
+  gameActive = false;
+}
+
+function resetGame() {
+  initializeGame();
+}
+
+function endGame() {
+  if (!gameActive) return;
+  gameActive = false;
+  declareWinner();
+}
+
+function resetTotalScore() {
+  totalScore = { X: 0, O: 0 };
+  updateTotalScoreDisplay();
+}
+
+function updateTotalScoreDisplay() {
+  totalScoreXElement.textContent = totalScore.X;
+  totalScoreOElement.textContent = totalScore.O;
+}
+
+function countEmptyCells() {
+  let count = 0;
+  for (let row = 0; row < boardSize; row++) {
+    for (let col = 0; col < boardSize; col++) {
       if (board[row][col] === "") count++;
     }
   }
   return count;
 }
 
-// Update de makeMove functie om de nieuwe logica te gebruiken (vervang de bestaande makeMove functie):
-function makeMove(row, col) {
-  if (!gameState.gameActive) return;
-
-  if (gameState.board[row][col] !== "") {
-    updateStatus("This spot is already taken!");
-    setTimeout(
-      () => updateStatus(`Player ${gameState.currentPlayer}'s turn`),
-      2000
-    );
-    return;
-  }
-
-  if (isNextToLastMove(row, col, gameState.currentPlayer)) {
-    updateStatus("You may not make a move next to your last move.");
-    setTimeout(
-      () => updateStatus(`Player ${gameState.currentPlayer}'s turn`),
-      2000
-    );
-    return;
-  }
-
-  const newBoard = gameState.board.map((row) => [...row]);
-  newBoard[row][col] = gameState.currentPlayer;
-
-  const points = checkForPoints(newBoard, row, col, gameState.currentPlayer);
-  gameState.score[gameState.currentPlayer] += points;
-
-  gameState.lastMove[gameState.currentPlayer] = { row, col };
-  gameState.board = newBoard;
-
-  updateBoard();
-  updateScore();
-
-  if (gameState.bonusTurn && gameState.currentPlayer === "O") {
-    gameState.bonusTurn = false;
-    gameState.gameActive = false;
-    declareWinner();
-    return;
-  }
-
-  const xCanMove = hasValidMove("X");
-  const oCanMove = hasValidMove("O");
-
-  // ✨ Check ook of er nog punten te halen zijn
-  const stillPointsPossible = anyPotentialPoints(
-    gameState.board,
-    gameState.lastMove
-  );
-
-  // Debug logging
-  console.log("🎮 Game state check:", {
-    emptyCells: countEmptyCells(gameState.board),
-    xCanMove,
-    oCanMove,
-    stillPointsPossible,
-  });
-
-  if (
-    countEmptyCells(gameState.board) <= 1 ||
-    (!xCanMove && !oCanMove) ||
-    !stillPointsPossible
-  ) {
-    let endReason = "";
-    if (countEmptyCells(gameState.board) <= 1) {
-      endReason = "Board is full";
-    } else if (!xCanMove && !oCanMove) {
-      endReason = "No valid moves left";
-    } else if (!stillPointsPossible) {
-      endReason = "No more points possible";
-    }
-
-    console.log(`🏁 Game ended: ${endReason}`);
-    gameState.gameActive = false;
-    declareWinner();
-    return;
-  }
-
-  if (gameState.currentPlayer === "X" && !xCanMove && oCanMove) {
-    gameState.bonusTurn = true;
-    gameState.currentPlayer = "O";
-    updateStatus("Player O's bonus turn");
-    return;
-  }
-
-  if (gameState.currentPlayer === "X" && !oCanMove) {
-    gameState.gameActive = false;
-    declareWinner();
-    return;
-  }
-
-  gameState.currentPlayer = gameState.currentPlayer === "X" ? "O" : "X";
-  updateStatus(`Player ${gameState.currentPlayer}'s turn`);
-}
+initializeGame();
